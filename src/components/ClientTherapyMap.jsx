@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
-const ClientTherapyMap = ({ clients, centers }) => {
-  const [isClientListVisible, setIsClientListVisible] = useState(true);
+const ClientTherapyMap = ({ clients, centers, assignments }) => {
+  const [showLines, setShowLines] = useState(false); // State to toggle lines visibility
 
   useEffect(() => {
     const map = L.map('map', {
@@ -42,18 +42,32 @@ const ClientTherapyMap = ({ clients, centers }) => {
       }
     });
 
+    // Draw lines between clients and their assigned therapy centers
+    if (showLines && assignments.length > 0) {
+      assignments.forEach((assignment) => {
+        const client = clients.find(c => c.name === assignment.client);
+        const center = centers.find(c => c.name === assignment.center);
+        if (client && center) {
+          L.polyline([
+            [client.coords.lat, client.coords.lng],
+            [center.coords.lat, center.coords.lng],
+          ], { color: 'blue' }).addTo(map);
+        }
+      });
+    }
+
     // Handle resizing the map
     setTimeout(() => {
       map.invalidateSize();
     }, 100);
 
     return () => {
-      map.remove(); // Clean up on component unmount
+      map.remove();
     };
-  }, [clients, centers]);
+  }, [clients, centers, showLines, assignments]);
 
-  const toggleClientList = () => {
-    setIsClientListVisible(!isClientListVisible);
+  const toggleShowLines = () => {
+    setShowLines(!showLines);
   };
 
   return (
@@ -67,27 +81,13 @@ const ClientTherapyMap = ({ clients, centers }) => {
         ))}
       </ul>
 
-      {/* Toggle button to show/hide client list */}
+      {/* Toggle button for showing lines */}
       <button
-        onClick={toggleClientList}
-        className="bg-blue-500 text-white px-4 py-2 mt-4 rounded hover:bg-blue-700"
+        onClick={toggleShowLines}
+        className="bg-green-500 text-white px-4 py-2 mt-4 rounded hover:bg-green-700"
       >
-        {isClientListVisible ? 'Hide Client List' : 'Show Client List'}
+        {showLines ? 'Hide Lines' : 'Show Lines'}
       </button>
-
-      {/* Conditionally render the client list */}
-      {isClientListVisible && (
-        <div className="mt-4">
-          <h2 className="text-2xl font-bold">Client List</h2>
-          <ul>
-            {clients.map((client, index) => (
-              <li key={index}>
-                {client.name} - {client.address}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
 
       {/* Map Container */}
       <div
