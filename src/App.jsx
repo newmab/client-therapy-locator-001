@@ -4,8 +4,10 @@ import ClientList from './components/ClientList';
 import TherapyCenterList from './components/TherapyCenterList';
 import ClientTherapyMap from './components/ClientTherapyMap';
 import ClientAssignmentsTable from './components/ClientAssignmentsTable';
+import DropdownList from './components/DropdownList'; // For collapsible list
 import { calculateDistance } from './utils/calculateDistance';
 import { geocodeAddress } from './utils/geocodeAddress';
+import './input.css';
 
 const App = () => {
   const [therapyCenters] = useState([
@@ -34,6 +36,7 @@ const App = () => {
   const [clients, setClients] = useState([]);
   const [assignments, setAssignments] = useState([]);
   const [showLines, setShowLines] = useState(false); // New state for line visibility
+  const [selectedCenter, setSelectedCenter] = useState('All'); // Track selected center
 
   const handleAddClientsFromExcel = async (clientsData) => {
     for (const row of clientsData) {
@@ -96,39 +99,45 @@ const App = () => {
   return (
     <div className="App container mx-auto p-4">
       <h1 className="text-3xl font-bold mb-4 text-center">Client and Therapy Center Proximity</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <ClientImportForm onAddClients={handleAddClientsFromExcel} />
-          
-        </div>
-        <div>
-        </div>
-      </div>
+      <ClientImportForm onAddClients={handleAddClientsFromExcel} />
 
-      <div className="mt-8">
-        {/* Toggle Button for Lines */}
+      {/* Show Lines Toggle Button */}
+      <div className="text-center mb-4">
         <button
           onClick={() => setShowLines(!showLines)}
-          className="bg-blue-500 text-white p-2 rounded-md mb-4"
+          className="px-4 py-2 bg-blue-500 text-white rounded-md shadow-md"
         >
           {showLines ? 'Hide Lines' : 'Show Lines'}
         </button>
       </div>
 
       <div className="mt-8 rounded-lg shadow-lg">
-        <ClientTherapyMap clients={clients} centers={therapyCenters} assignments={assignments} showLines={showLines} />
+        <ClientTherapyMap
+          clients={clients}
+          centers={therapyCenters}
+          assignments={assignments}
+          showLines={showLines} // Pass the toggle state for lines
+          selectedCenter={selectedCenter} // Pass selected center to map
+        />
       </div>
-
+      
       {assignments.length > 0 && (
-        <div className="mt-8 grid-flow-col grid-cols-3 bg-white p-4 rounded-lg shadow-md">
-          <h2 className="text-2xl font-bold mb-4">Client Assignments</h2>
-          <ClientAssignmentsTable assignments={assignments} />
-          <ClientList clients={clients} />
-          <TherapyCenterList centers={therapyCenters} />
+        <div className="mt-8 grid grid-cols-2 gap-4 bg-white p-4 rounded-lg shadow-md">
+          <div>
+            <h2 className="text-2xl font-bold mb-4">Client Assignments</h2>
+            <ClientAssignmentsTable
+              assignments={assignments}
+              onFilterCenterChange={setSelectedCenter} // Get selected center from dropdown
+            />
+          </div>
+          <div className="w-full">
+            <DropdownList title="Clients" content={<ClientList clients={clients} />} />
+            <DropdownList title="Therapy Centers" content={<TherapyCenterList centers={therapyCenters} />} />
+          </div>
         </div>
       )}
     </div>
   );
-};
+}
 
 export default App;

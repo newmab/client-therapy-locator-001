@@ -1,16 +1,26 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-const ClientAssignmentsTable = ({ assignments }) => {
+const ClientAssignmentsTable = ({ assignments, onFilterCenterChange }) => {
   const [filterCenter, setFilterCenter] = useState('All');
   const [sortOrder, setSortOrder] = useState('asc'); // 'asc' for ascending, 'desc' for descending
+  const [sortByCenterFirst, setSortByCenterFirst] = useState(true); // New state to track sorting by center
+
+  useEffect(() => {
+    // Notify parent component of the selected center change
+    onFilterCenterChange(filterCenter);
+  }, [filterCenter]);
 
   // Filter the assignments based on the selected center
   const filteredAssignments = assignments.filter(assignment =>
     filterCenter === 'All' || assignment.center === filterCenter
   );
 
-  // Sort the filtered assignments by distance
+  // Sort the filtered assignments by center and then by distance
   const sortedAssignments = filteredAssignments.sort((a, b) => {
+    if (sortByCenterFirst) {
+      if (a.center < b.center) return -1;
+      if (a.center > b.center) return 1;
+    }
     if (sortOrder === 'asc') {
       return parseFloat(a.distance) - parseFloat(b.distance);
     }
@@ -35,7 +45,15 @@ const ClientAssignmentsTable = ({ assignments }) => {
           ))}
         </select>
 
-        {/* Button to toggle sorting */}
+        {/* Toggle sorting by center first */}
+        <button
+          onClick={() => setSortByCenterFirst(!sortByCenterFirst)}
+          className="ml-4 border p-2 rounded-md bg-green-500 text-white"
+        >
+          Sort by Center First: {sortByCenterFirst ? 'On' : 'Off'}
+        </button>
+
+        {/* Sort by distance */}
         <button
           onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
           className="ml-4 border p-2 rounded-md bg-blue-500 text-white"

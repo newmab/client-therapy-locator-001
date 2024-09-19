@@ -2,16 +2,22 @@ import React from 'react';
 
 const TherapyCenterList = ({ centers }) => {
   return (
-    <div className="bg-white p-4 rounded-lg shadow-md">
-      <h2 className="text-xl font-bold mb-4">Therapy Centers</h2>
-      <ul>
+    <table className="table-auto w-full border-collapse">
+      <thead>
+        <tr>
+          <th className="border-b-2 p-2">Center Name</th>
+          <th className="border-b-2 p-2">Address</th>
+        </tr>
+      </thead>
+      <tbody>
         {centers.map((center, index) => (
-          <li key={index}>
-            {center.name} - {center.address}
-          </li>
+          <tr key={index}>
+            <td className="border-b p-2">{center.name}</td>
+            <td className="border-b p-2">{center.address}</td>
+          </tr>
         ))}
-      </ul>
-    </div>
+      </tbody>
+    </table>
   );
 };
 

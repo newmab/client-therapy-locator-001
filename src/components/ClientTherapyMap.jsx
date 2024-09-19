@@ -1,14 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
-const ClientTherapyMap = ({ clients, centers, assignments }) => {
-  const [showLines, setShowLines] = useState(false); // State to toggle lines visibility
-
+const ClientTherapyMap = ({ clients, centers, assignments, showLines, selectedCenter }) => {
   useEffect(() => {
     const map = L.map('map', {
-      center: [36.8083, -119.8519], // Center the map on Fresno
-      zoom: 10,                     // Set the initial zoom level
+      center: [36.7783, -119.4179], // Center the map on California
+      zoom: 7, // Set the initial zoom level
     });
 
     // Add OpenStreetMap tile layer
@@ -42,16 +40,22 @@ const ClientTherapyMap = ({ clients, centers, assignments }) => {
       }
     });
 
-    // Draw lines between clients and their assigned therapy centers
-    if (showLines && assignments.length > 0) {
+    // Draw lines if showLines is true and the center is selected
+    if (showLines) {
       assignments.forEach((assignment) => {
-        const client = clients.find(c => c.name === assignment.client);
-        const center = centers.find(c => c.name === assignment.center);
-        if (client && center) {
-          L.polyline([
-            [client.coords.lat, client.coords.lng],
-            [center.coords.lat, center.coords.lng],
-          ], { color: 'blue' }).addTo(map);
+        if (
+          selectedCenter === 'All' || // Show all lines if 'All' is selected
+          assignment.center === selectedCenter // Show lines only for the selected center
+        ) {
+          if (assignment.centerCoords && assignment.clientCoords) {
+            L.polyline(
+              [
+                [assignment.clientCoords.lat, assignment.clientCoords.lng],
+                [assignment.centerCoords.lat, assignment.centerCoords.lng],
+              ],
+              { color: 'black', weight: 1 } // Thin black lines
+            ).addTo(map);
+          }
         }
       });
     }
@@ -64,40 +68,16 @@ const ClientTherapyMap = ({ clients, centers, assignments }) => {
     return () => {
       map.remove();
     };
-  }, [clients, centers, showLines, assignments]);
-
-  const toggleShowLines = () => {
-    setShowLines(!showLines);
-  };
+  }, [clients, centers, assignments, showLines, selectedCenter]);
 
   return (
-    <div>
-      <h1 className="text-3xl font-bold mb-4">Therapy Centers</h1>
-      <ul>
-        {centers.map((center, index) => (
-          <li key={index}>
-            <strong>{center.name}</strong> - {center.address}
-          </li>
-        ))}
-      </ul>
-
-      {/* Toggle button for showing lines */}
-      <button
-        onClick={toggleShowLines}
-        className="bg-green-500 text-white px-4 py-2 mt-4 rounded hover:bg-green-700"
-      >
-        {showLines ? 'Hide Lines' : 'Show Lines'}
-      </button>
-
-      {/* Map Container */}
-      <div
-        id="map"
-        style={{
-          height: '600px', // Explicit height
-          width: '100%',
-        }}
-      />
-    </div>
+    <div
+      id="map"
+      style={{
+        height: '500px',
+        width: '100%',
+      }}
+    />
   );
 };
 
